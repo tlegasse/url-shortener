@@ -3,25 +3,22 @@ package main
 import (
 	"log"
 	"net/http"
-    "github.com/tlegasse/url-shortener/database"
-    "github.com/tlegasse/url-shortener/urlshortener"
+
+    urlshortener "github.com/tlegasse/url-shortener/internal/urlshortener"
+    database "github.com/tlegasse/url-shortener/internal/database"
 )
 
 func main() {
-	db, err := database.Setup()
-	if err != nil {
-		log.Fatal(err)
-	}
+	defer database.DbInstance.Close()
 
-	defer db.Close()
+	u := urlshortener.ShortenerInstance
 
-	shortener := urlshortener.New(db)
-
-	http.HandleFunc("/shorten", shortener.Shorten)
-	http.HandleFunc("/", shortener.Redirect)
+	http.HandleFunc("/shorten", u.Shorten)
+	http.HandleFunc("/", u.Redirect)
 
 	log.Println("Server listening on :8080")
-	err = http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+
 	if err != nil {
 		log.Fatal(err)
 	}
