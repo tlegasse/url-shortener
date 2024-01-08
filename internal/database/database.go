@@ -85,7 +85,6 @@ func GetUrlFromPath(shortenedPath string) (Url, error) {
 }
 
 func InsertUrl(url Url) (error) {
-	// Insert the url into the Database
 	fmt.Println("Inserting url into database")
 	fmt.Println(url.Url)
 	fmt.Println(url.Path)

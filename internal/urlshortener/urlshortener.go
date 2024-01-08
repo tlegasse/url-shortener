@@ -5,22 +5,28 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"log"
 	"math/rand"
 
 	database "github.com/tlegasse/url-shortener/internal/database"
+	util "github.com/tlegasse/url-shortener/internal/util"
 )
 
 type Shortener struct {
 	db *sql.DB
+	url string
+	port string
 }
 
 var ShortenerInstance Shortener
 var once sync.Once
 
-func init() {
+func Setup(url string, port string) {
 	once.Do(func() {
 		ShortenerInstance = Shortener{
 			db: database.DbInstance,
+			url: url,
+			port: port,
 		}
 	})
 }
@@ -52,6 +58,13 @@ func RandStringRunes(n int) string {
     return string(b)
 }
 
+func cleanUrl(u string) string {
+	if u[len(u)-1:] == "/" {
+		return u[:len(u)-1]
+	}
+	return u
+}
+
 func (s *Shortener) Shorten(w http.ResponseWriter, r *http.Request) {
 	// Get URL from request GET parameters
 	u := r.URL.Query().Get("url")
@@ -65,11 +78,20 @@ func (s *Shortener) Shorten(w http.ResponseWriter, r *http.Request) {
 
 	// Insert the url into the database
 	err := database.InsertUrl(url)
-
 	if err != nil {
 		fmt.Println(err)
 	}
 
+	c, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("Cannot load config:", err)
+	}
+
+	baseUrl := cleanUrl(c.BaseURL)
+
 	// Write the new URL path to the Response
-	fmt.Fprintf(w, "http://localhost:8080/%s", p)
+	_, err = w.Write([]byte(baseUrl + ":" + c.Port + "/" + p))
+	if err != nil {
+		fmt.Println(err)
+	}
 }
