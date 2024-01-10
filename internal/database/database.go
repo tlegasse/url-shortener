@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"os"
 	"log"
-	"sync"
 	"errors"
 	"fmt"
 
@@ -17,7 +16,6 @@ var (
 )
 
 var DbInstance *sql.DB
-var once sync.Once
 
 type Url struct {
 	Id   int
@@ -48,15 +46,13 @@ func SetupSchema(f string) {
 }
 
 func CreateConnection(dbFile string) {
-	once.Do(func() {
-		var err error
+	var err error
 
-		DbInstance, err = sql.Open("sqlite3", dbFile)
+	DbInstance, err = sql.Open("sqlite3", dbFile)
 
-		if err != nil {
-			log.Fatalf("Failed to open the database: %v", err)
-		}
-	})
+	if err != nil {
+		log.Fatalf("Failed to open the database: %v", err)
+	}
 }
 
 func GetUrlFromPath(shortenedPath string) (Url, error) {
