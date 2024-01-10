@@ -17,18 +17,19 @@ type Url struct {
 	Url  string
 }
 
-type Db struct {
-	Db *sql.DB
+type DbType struct {
+	instance *sql.DB
 	errors map[string]error
 }
 
+var Db DbType
+
 func init() {
-	Db := Db{
-		Db: Connect(),
-		errors: map[string]error{
-			"ErrDatabaseError": errors.New("Database error"),
-			"ErrNoUrlFound": errors.New("No url found"),
-		},
+	Db.instance = Connect()
+
+	Db.errors = map[string]error{
+		"ErrDatabaseError": errors.New("Database error"),
+		"ErrNoUrlFound": errors.New("No url found"),
 	}
 
 	Db.SetupSchema("internal/database/schema.sql")
@@ -44,7 +45,7 @@ func Connect() *sql.DB {
 	return c
 }
 
-func (d Db) SetupSchema(f string) {
+func (d *DbType) SetupSchema(f string) {
 	// Read the sql file
 	c, err := os.ReadFile(f)
 
@@ -53,16 +54,16 @@ func (d Db) SetupSchema(f string) {
 	}
 
 	// Catch any errors
-	_, err = d.Db.Exec(string(c))
+	_, err = d.instance.Exec(string(c))
 
 	if err != nil {
 		log.Fatalf("Failed to create the schema: %v", err)
 	}
 }
 
-func (d Db) GetUrlFromPath(shortenedPath string) (Url, error) {
+func (d *DbType) GetUrlFromPath(shortenedPath string) (Url, error) {
 	var url Url
-	rows, err := d.Db.Query("SELECT * FROM `urls` WHERE `path` = ?", shortenedPath)
+	rows, err := d.instance.Query("SELECT * FROM `urls` WHERE `path` = ?", shortenedPath)
 
 	if err != nil {
 		fmt.Println(err)
@@ -85,8 +86,8 @@ func (d Db) GetUrlFromPath(shortenedPath string) (Url, error) {
 	return url, nil
 }
 
-func (d Db) InsertUrl(url Url) (error) {
-	_, err := d.Db.Exec("INSERT INTO urls (path, url) VALUES (?, ?)", url.Path, url.Url)
+func (d *DbType) InsertUrl(url Url) (error) {
+	_, err := d.instance.Exec("INSERT INTO urls (path, url) VALUES (?, ?)", url.Path, url.Url)
 
 	if err != nil {
 		fmt.Println(err)

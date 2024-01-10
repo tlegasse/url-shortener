@@ -15,14 +15,14 @@ type ShortenerType struct {
 
 var Shortener ShortenerType
 
-func (s *ShortenerType) Setup(url string, port string) {
-	s.url = url
-	s.port = port
+func Setup(url string, port string) {
+	Shortener.url = url
+	Shortener.port = port
 
-	s.setupRoutes()
+	Shortener.SetupRoutes()
 }
 
-func (s *ShortenerType) setupRoutes() {
+func (s ShortenerType) SetupRoutes() {
 	http.HandleFunc("/shorten", s.Shorten)
 	http.HandleFunc("/", s.Redirect)
 }
@@ -44,7 +44,7 @@ func cleanUrl(u string) string {
 	return u
 }
 
-func (s *ShortenerType) Shorten(w http.ResponseWriter, r *http.Request) {
+func (s ShortenerType) Shorten(w http.ResponseWriter, r *http.Request) {
 	// Get URL from request GET parameters
 	u := r.URL.Query().Get("url")
 	p := RandStringRunes(10)
@@ -70,7 +70,7 @@ func (s *ShortenerType) Shorten(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *ShortenerType) Redirect(w http.ResponseWriter, r *http.Request) {
+func (s ShortenerType) Redirect(w http.ResponseWriter, r *http.Request) {
 	// Get the path from the Request
 	p := r.URL.Path[1:]
 
@@ -81,9 +81,9 @@ func (s *ShortenerType) Redirect(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		// Write a response to the page that reports a 404 to the user with a short message and an error code of 404
 		http.Error(w, "404 Not Found", http.StatusNotFound)
+	} else {
+		// Redirect the user to the URL
+		http.Redirect(w, r, url.Url, http.StatusSeeOther)
 	}
-
-	// Redirect the user to the URL
-	http.Redirect(w, r, url.Url, http.StatusSeeOther)
 }
 

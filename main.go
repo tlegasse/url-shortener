@@ -15,7 +15,7 @@ func main() {
 }
 
 func SetupUrlShortener(c util.Config) {
-	urlshortener.Shortener.Setup(c.BaseURL, c.Port)
+	urlshortener.Setup(c.BaseURL, c.Port)
 }
 
 func SetupServer(c util.Config) {
