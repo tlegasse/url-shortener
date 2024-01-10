@@ -10,13 +10,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	ErrDatabaseError   = errors.New("Database error")
-	ErrNoUrlFound      = errors.New("No url found")
-)
-
-var DbInstance *sql.DB
-
 type Url struct {
 	Id   int
 	Time string
@@ -24,12 +17,30 @@ type Url struct {
 	Url  string
 }
 
-func init() {
-	CreateConnection("urls.db")
-	SetupSchema("internal/database/schema.sql")
+type Db struct {
+	Db *sql.DB
+	errors map[string]error
 }
 
-func SetupSchema(f string) {
+func init() {
+	c, err := sql.Open("sqlite3", "urls.db")
+
+	if err != nil {
+		log.Fatalf("Failed to open the database: %v", err)
+	}
+
+	Db := Db{
+		Db: c,
+		errors: map[string]error{
+			"ErrDatabaseError": errors.New("Database error"),
+			"ErrNoUrlFound": errors.New("No url found"),
+		},
+	}
+
+	Db.SetupSchema("internal/database/schema.sql")
+}
+
+func (d Db) SetupSchema(f string) {
 	// Read the sql file
 	c, err := os.ReadFile(f)
 
@@ -38,30 +49,20 @@ func SetupSchema(f string) {
 	}
 
 	// Catch any errors
-	_, err = DbInstance.Exec(string(c))
+	_, err = d.Db.Exec(string(c))
 
 	if err != nil {
 		log.Fatalf("Failed to create the schema: %v", err)
 	}
 }
 
-func CreateConnection(dbFile string) {
-	var err error
-
-	DbInstance, err = sql.Open("sqlite3", dbFile)
-
-	if err != nil {
-		log.Fatalf("Failed to open the database: %v", err)
-	}
-}
-
-func GetUrlFromPath(shortenedPath string) (Url, error) {
+func (d Db) GetUrlFromPath(shortenedPath string) (Url, error) {
 	var url Url
-	rows, err := DbInstance.Query("SELECT * FROM `urls` WHERE `path` = ?", shortenedPath)
+	rows, err := d.Db.Query("SELECT * FROM `urls` WHERE `path` = ?", shortenedPath)
 
 	if err != nil {
 		fmt.Println(err)
-		return url, ErrDatabaseError
+		return url, d.errors["ErrDatabaseError"]
 	}
 
 	defer rows.Close()
@@ -71,21 +72,21 @@ func GetUrlFromPath(shortenedPath string) (Url, error) {
 
 		if err != nil {
 			fmt.Println(err)
-			return Url{}, ErrDatabaseError
+			return Url{},d.errors["ErrDatabaseError"]
 		}
 	} else {
-		return url, ErrNoUrlFound
+		return url,d.errors["ErrNoUrlFound"]
 	}
 
 	return url, nil
 }
 
-func InsertUrl(url Url) (error) {
-	_, err := DbInstance.Exec("INSERT INTO urls (path, url) VALUES (?, ?)", url.Path, url.Url)
+func (d Db) InsertUrl(url Url) (error) {
+	_, err := d.Db.Exec("INSERT INTO urls (path, url) VALUES (?, ?)", url.Path, url.Url)
 
 	if err != nil {
 		fmt.Println(err)
-		return ErrDatabaseError
+		return d.errors["ErrDatabaseError"]
 	}
 
 	return nil
