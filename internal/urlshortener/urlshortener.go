@@ -18,6 +18,13 @@ var Shortener ShortenerType
 func (s *ShortenerType) Setup(url string, port string) {
 	s.url = url
 	s.port = port
+
+	s.setupRoutes()
+}
+
+func (s *ShortenerType) setupRoutes() {
+	http.HandleFunc("/shorten", s.Shorten)
+	http.HandleFunc("/", s.Redirect)
 }
 
 func RandStringRunes(n int) string {

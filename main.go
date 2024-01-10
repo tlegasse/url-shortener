@@ -16,9 +16,6 @@ func main() {
 
 	urlshortener.Shortener.Setup(c.BaseURL, c.Port)
 
-	http.HandleFunc("/shorten", urlshortener.Shortener.Shorten)
-	http.HandleFunc("/", urlshortener.Shortener.Redirect)
-
 	log.Printf("Server listening on :%s", c.Port)
 	err = http.ListenAndServe(":" + c.Port, nil)
 
