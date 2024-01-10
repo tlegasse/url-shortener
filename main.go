@@ -14,12 +14,10 @@ func main() {
 		log.Fatal("Cannot load config:", err)
 	}
 
-	urlshortener.Setup(c.BaseURL, c.Port)
+	urlshortener.Shortener.Setup(c.BaseURL, c.Port)
 
-	u := urlshortener.ShortenerInstance
-
-	http.HandleFunc("/shorten", u.Shorten)
-	http.HandleFunc("/", u.Redirect)
+	http.HandleFunc("/shorten", urlshortener.Shortener.Shorten)
+	http.HandleFunc("/", urlshortener.Shortener.Redirect)
 
 	log.Printf("Server listening on :%s", c.Port)
 	err = http.ListenAndServe(":" + c.Port, nil)

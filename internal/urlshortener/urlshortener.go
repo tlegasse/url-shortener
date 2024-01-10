@@ -1,51 +1,23 @@
 package urlshortener
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
-	"sync"
-	"log"
 	"math/rand"
 
 	database "github.com/tlegasse/url-shortener/internal/database"
-	util "github.com/tlegasse/url-shortener/internal/util"
 )
 
-type Shortener struct {
-	db *sql.DB
+type ShortenerType struct {
 	url string
 	port string
 }
 
-var ShortenerInstance Shortener
-var once sync.Once
+var Shortener ShortenerType
 
-func Setup(url string, port string) {
-	once.Do(func() {
-		ShortenerInstance = Shortener{
-			db: database.DbInstance,
-			url: url,
-			port: port,
-		}
-	})
-}
-
-func (s *Shortener) Redirect(w http.ResponseWriter, r *http.Request) {
-	// Get the path from the Request
-	p := r.URL.Path[1:]
-
-	// Get the URL from the database
-	url, err := database.GetUrlFromPath(p)
-
-	if err != nil {
-		fmt.Println(err)
-		// Write a response to the page that reports a 404 to the user with a short message and an error code of 404
-		http.Error(w, "404 Not Found", http.StatusNotFound)
-	}
-
-	// Redirect the user to the URL
-	http.Redirect(w, r, url.Url, http.StatusSeeOther)
+func (s *ShortenerType) Setup(url string, port string) {
+	s.url = url
+	s.port = port
 }
 
 func RandStringRunes(n int) string {
@@ -65,7 +37,7 @@ func cleanUrl(u string) string {
 	return u
 }
 
-func (s *Shortener) Shorten(w http.ResponseWriter, r *http.Request) {
+func (s *ShortenerType) Shorten(w http.ResponseWriter, r *http.Request) {
 	// Get URL from request GET parameters
 	u := r.URL.Query().Get("url")
 	p := RandStringRunes(10)
@@ -82,16 +54,29 @@ func (s *Shortener) Shorten(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	c, err := util.LoadConfig(".")
-	if err != nil {
-		log.Fatal("Cannot load config:", err)
-	}
-
-	baseUrl := cleanUrl(c.BaseURL)
+	baseUrl := cleanUrl(s.url)
 
 	// Write the new URL path to the Response
-	_, err = w.Write([]byte(baseUrl + ":" + c.Port + "/" + p))
+	_, err = w.Write([]byte(baseUrl + ":" + s.port + "/" + p))
 	if err != nil {
 		fmt.Println(err)
 	}
 }
+
+func (s *ShortenerType) Redirect(w http.ResponseWriter, r *http.Request) {
+	// Get the path from the Request
+	p := r.URL.Path[1:]
+
+	// Get the URL from the database
+	url, err := database.GetUrlFromPath(p)
+
+	if err != nil {
+		fmt.Println(err)
+		// Write a response to the page that reports a 404 to the user with a short message and an error code of 404
+		http.Error(w, "404 Not Found", http.StatusNotFound)
+	}
+
+	// Redirect the user to the URL
+	http.Redirect(w, r, url.Url, http.StatusSeeOther)
+}
+
