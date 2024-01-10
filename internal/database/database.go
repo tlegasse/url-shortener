@@ -25,7 +25,7 @@ type DbType struct {
 var Db DbType
 
 func init() {
-	Db.instance = Connect()
+	Db.instance = Connect("urls.db")
 
 	Db.errors = map[string]error{
 		"ErrDatabaseError": errors.New("Database error"),
@@ -35,8 +35,8 @@ func init() {
 	Db.SetupSchema("internal/database/schema.sql")
 }
 
-func Connect() *sql.DB {
-	c, err := sql.Open("sqlite3", "urls.db")
+func Connect(dbFilename string) *sql.DB {
+	c, err := sql.Open("sqlite3", dbFilename)
 
 	if err != nil {
 		log.Fatalf("Failed to open the database: %v", err)
