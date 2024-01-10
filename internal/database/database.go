@@ -85,10 +85,6 @@ func GetUrlFromPath(shortenedPath string) (Url, error) {
 }
 
 func InsertUrl(url Url) (error) {
-	fmt.Println("Inserting url into database")
-	fmt.Println(url.Url)
-	fmt.Println(url.Path)
-
 	_, err := DbInstance.Exec("INSERT INTO urls (path, url) VALUES (?, ?)", url.Path, url.Url)
 
 	if err != nil {
