@@ -23,14 +23,8 @@ type Db struct {
 }
 
 func init() {
-	c, err := sql.Open("sqlite3", "urls.db")
-
-	if err != nil {
-		log.Fatalf("Failed to open the database: %v", err)
-	}
-
 	Db := Db{
-		Db: c,
+		Db: Connect(),
 		errors: map[string]error{
 			"ErrDatabaseError": errors.New("Database error"),
 			"ErrNoUrlFound": errors.New("No url found"),
@@ -38,6 +32,16 @@ func init() {
 	}
 
 	Db.SetupSchema("internal/database/schema.sql")
+}
+
+func Connect() *sql.DB {
+	c, err := sql.Open("sqlite3", "urls.db")
+
+	if err != nil {
+		log.Fatalf("Failed to open the database: %v", err)
+	}
+
+	return c
 }
 
 func (d Db) SetupSchema(f string) {
