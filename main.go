@@ -9,17 +9,30 @@ import (
 )
 
 func main() {
-	c, err := util.LoadConfig(".")
-	if err != nil {
-		log.Fatal("Cannot load config:", err)
-	}
+	c := GetConfig()
+	SetupUrlShortener(c)
+	SetupServer(c)
+}
 
+func SetupUrlShortener(c util.Config) {
 	urlshortener.Shortener.Setup(c.BaseURL, c.Port)
+}
 
+func SetupServer(c util.Config) {
 	log.Printf("Server listening on :%s", c.Port)
-	err = http.ListenAndServe(":" + c.Port, nil)
+	err := http.ListenAndServe(":" + c.Port, nil)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func GetConfig() util.Config {
+	c, err := util.LoadConfig(".")
+
+	if err != nil {
+		log.Fatal("Cannot load config:", err)
+	}
+
+	return c
 }
