@@ -56,7 +56,7 @@ func (s *ShortenerType) Shorten(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert the url into the database
-	err := database.InsertUrl(url)
+	err := database.Db.InsertUrl(url)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -75,7 +75,7 @@ func (s *ShortenerType) Redirect(w http.ResponseWriter, r *http.Request) {
 	p := r.URL.Path[1:]
 
 	// Get the URL from the database
-	url, err := database.GetUrlFromPath(p)
+	url, err := database.Db.GetUrlFromPath(p)
 
 	if err != nil {
 		fmt.Println(err)
