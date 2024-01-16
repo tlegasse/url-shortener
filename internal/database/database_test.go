@@ -41,7 +41,7 @@ func TestSetupSchema(t *testing.T) {
 
     // Instantiate your DbType and set the mocked db instance
     d := DbType{
-        instance: db,
+        Instance: db,
     }
 
     // Call the SetupSchema function
@@ -63,7 +63,7 @@ func TestGetUrlFromPath(t *testing.T) {
     defer db.Close()
 
 	d := DbType{
-		instance: db,
+		Instance: db,
 	}
 
 	// before we actually execute our api function, we need to expect required DB actions
@@ -93,7 +93,7 @@ func TestInsertUrl(t *testing.T) {
     defer db.Close()
 
     d := DbType{
-        instance: db,
+        Instance: db,
     }
 
     u := Url{

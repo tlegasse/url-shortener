@@ -30,18 +30,18 @@ type DbInterface interface {
 }
 
 type DbType struct {
-	instance *sql.DB
-	errors map[string]error
+	Instance *sql.DB
+	Errors map[string]error
 }
 
-// Database instance
+// Database Instance
 var Db DbType
 
 func init() {
 	c := util.GetConfig()
-	Db.instance = Connect(c.DbPath)
+	Db.Instance = Connect(c.DbPath)
 
-	Db.errors = map[string]error{
+	Db.Errors = map[string]error{
 		"ErrDatabaseError": errors.New("Database error"),
 		"ErrNoUrlFound": errors.New("No url found"),
 	}
@@ -64,7 +64,7 @@ func (d *DbType) SetupSchema() {
         log.Fatalf("Failed to read the schema file: %v", err)
     }
 
-	_, err = d.instance.Exec(string(content))
+	_, err = d.Instance.Exec(string(content))
 	if err != nil {
 		log.Fatalf("Failed to create the schema: %v", err)
 	}
@@ -74,10 +74,10 @@ func (d *DbType) SetupSchema() {
 func (d *DbType) GetUrlFromPath(path string) (Url, error) {
 	var url Url
 
-	rows, err := d.instance.Query("SELECT * FROM urls WHERE path = ?", path)
+	rows, err := d.Instance.Query("SELECT * FROM urls WHERE path = ?", path)
 	if err != nil {
 		fmt.Println(err)
-		return url, d.errors["ErrDatabaseError"]
+		return url, d.Errors["ErrDatabaseError"]
 	}
 
 	defer rows.Close()
@@ -86,20 +86,20 @@ func (d *DbType) GetUrlFromPath(path string) (Url, error) {
 		err = rows.Scan(&url.Id, &url.Time, &url.Path, &url.Url)
 		if err != nil {
 			fmt.Println(err)
-			return Url{},d.errors["ErrDatabaseError"]
+			return Url{},d.Errors["ErrDatabaseError"]
 		}
 	} else {
-		return url,d.errors["ErrNoUrlFound"]
+		return url,d.Errors["ErrNoUrlFound"]
 	}
 
 	return url, nil
 }
 
 func (d *DbType) InsertUrl(url Url) (error) {
-	_, err := d.instance.Exec("INSERT INTO urls (path, url) VALUES (?, ?)", url.Path, url.Url)
+	_, err := d.Instance.Exec("INSERT INTO urls (path, url) VALUES (?, ?)", url.Path, url.Url)
 	if err != nil {
 		fmt.Println(err)
-		return d.errors["ErrDatabaseError"]
+		return d.Errors["ErrDatabaseError"]
 	}
 
 	return nil

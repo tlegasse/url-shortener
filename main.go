@@ -6,6 +6,7 @@ import (
 
     urlshortener "github.com/tlegasse/url-shortener/internal/urlshortener"
 	util "github.com/tlegasse/url-shortener/internal/util"
+	database "github.com/tlegasse/url-shortener/internal/database"
 )
 
 func main() {
@@ -15,7 +16,8 @@ func main() {
 }
 
 func SetupUrlShortener(c util.Config) {
-	urlshortener.Setup(c.BaseURL, c.Port)
+	db := database.Db
+	urlshortener.Setup(c.BaseURL, c.Port, db)
 }
 
 func SetupServer(c util.Config) {
