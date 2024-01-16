@@ -90,12 +90,30 @@ func TestShorten(t *testing.T) {
 }
 
 func TestRedirect(t *testing.T) {
-    db, _, err := sqlmock.New()
+    db, mock, err := sqlmock.New()
     if err != nil {
 		log.Fatalf("Error connecting to mock database: %v", err)
     }
     defer db.Close()
 
+	r := httptest.NewRequest("GET", "/abc123", nil)
+	w := httptest.NewRecorder()
+
 	shortener.Db.Instance = db
 
+	// Write a new entry to the mock database
+	rows := sqlmock.NewRows([]string{"id", "time", "path", "url"}).
+		AddRow(1, "" , "abc123", "http://localhost")
+
+	mock.ExpectQuery("^SELECT (.+) FROM urls WHERE path = (.+)$").WillReturnRows(rows)
+
+	shortener.Redirect(w, r)
+
+	if w.Code != 302 {
+		t.Errorf("Shorten returned %d", w.Code)
+	}
+
+	if !strings.HasPrefix(w.Body.String(), hostname + ":" + port + "/") {
+		t.Errorf("Shorten returned %s", w.Body.String())
+	}
 }
