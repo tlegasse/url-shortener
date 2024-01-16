@@ -1,17 +1,14 @@
 package util
 
 import (
-	"embed"
-	"bytes"
 	"fmt"
 	"log"
 	"os"
+	"path"
+	"runtime"
 
 	"github.com/spf13/viper"
 )
-
-//go:embed internal/util/app.env
-var defaultConfig embed.FS
 
 type Config struct {
     BaseURL string `mapstructure:"BASE_URL"`
@@ -20,22 +17,25 @@ type Config struct {
 }
 
 func LoadConfig() (config Config, err error) {
-	viper.SetConfigName("app")
 	viper.SetConfigType("env")
+	viper.SetConfigName("app")
 
     customConfigPath, isCustomPathSet := os.LookupEnv("APP_ENV_PATH")
     if isCustomPathSet {
 		fmt.Println("Loading custom config file from", customConfigPath)
         viper.SetConfigFile(customConfigPath)
     } else {
-        configFile, fileErr := defaultConfig.ReadFile("internal/util/app.env")
+		_, filename, _, _ := runtime.Caller(0)
+		dir := path.Join(path.Dir(filename))
+		filePath := dir + "/app.env"
+
+		// Check if the config file exists
+		_, fileErr := os.Stat(filePath)
         if fileErr != nil {
             return Config{}, fileErr
         }
 
-        if err := viper.ReadConfig(bytes.NewReader(configFile)); err != nil {
-            return Config{}, err
-        }
+		viper.SetConfigFile(filePath)
     }
 
     viper.AutomaticEnv()
