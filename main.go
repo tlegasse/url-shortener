@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	c := GetConfig()
+	c := util.GetConfig()
 	SetupUrlShortener(c)
 	SetupServer(c)
 }
@@ -27,12 +27,3 @@ func SetupServer(c util.Config) {
 	}
 }
 
-func GetConfig() util.Config {
-	c, err := util.LoadConfig(".")
-
-	if err != nil {
-		log.Fatal("Cannot load config:", err)
-	}
-
-	return c
-}

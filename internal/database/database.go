@@ -9,6 +9,7 @@ import (
     "embed"
 
 	_ "github.com/mattn/go-sqlite3"
+	util "github.com/tlegasse/url-shortener/internal/util"
 )
 
 //go:embed schema.sql
@@ -35,10 +36,10 @@ type DbType struct {
 
 // Database instance
 var Db DbType
-var dbFilename string = "urls.db"
 
 func init() {
-	Db.instance = Connect(dbFilename)
+	c := util.GetConfig()
+	Db.instance = Connect(c.DbPath)
 
 	Db.errors = map[string]error{
 		"ErrDatabaseError": errors.New("Database error"),
