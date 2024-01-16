@@ -46,7 +46,7 @@ func TestSetupSchema(t *testing.T) {
 
     // Call the SetupSchema function
     // You might need to adjust how the schema file is read or passed
-    d.SetupSchema("./schema.sql")
+    d.SetupSchema()
 
     // Assert all expectations were met
     if err := mock.ExpectationsWereMet(); err != nil {

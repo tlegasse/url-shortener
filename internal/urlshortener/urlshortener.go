@@ -9,15 +9,15 @@ import (
 )
 
 type ShortenerType struct {
-	url string
-	port string
+	Url string
+	Port string
 }
 
 var Shortener ShortenerType
 
 func Setup(url string, port string) {
-	Shortener.url = url
-	Shortener.port = port
+	Shortener.Url = url
+	Shortener.Port = port
 
 	Shortener.SetupRoutes()
 }
@@ -37,7 +37,7 @@ func RandStringRunes(n int) string {
     return string(b)
 }
 
-func cleanUrl(u string) string {
+func CleanUrl(u string) string {
 	if u[len(u)-1:] == "/" {
 		return u[:len(u)-1]
 	}
@@ -61,10 +61,10 @@ func (s ShortenerType) Shorten(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	baseUrl := cleanUrl(s.url)
+	baseUrl := CleanUrl(s.Url)
 
 	// Write the new URL path to the Response
-	_, err = w.Write([]byte(baseUrl + ":" + s.port + "/" + p))
+	_, err = w.Write([]byte(baseUrl + ":" + s.Port + "/" + p))
 	if err != nil {
 		fmt.Println(err)
 	}

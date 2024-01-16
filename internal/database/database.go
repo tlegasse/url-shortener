@@ -3,13 +3,16 @@ package database
 
 import (
 	"database/sql"
-	"os"
 	"log"
 	"errors"
 	"fmt"
+    "embed"
 
 	_ "github.com/mattn/go-sqlite3"
 )
+
+//go:embed schema.sql
+var schemaFS embed.FS
 
 // URL struct for database operations
 type Url struct {
@@ -42,7 +45,7 @@ func init() {
 		"ErrNoUrlFound": errors.New("No url found"),
 	}
 
-	Db.SetupSchema("./schema.sql")
+	Db.SetupSchema()
 }
 
 func Connect(dbFilename string) *sql.DB {
@@ -54,13 +57,13 @@ func Connect(dbFilename string) *sql.DB {
 	return c
 }
 
-func (d *DbType) SetupSchema(f string) {
-	c, err := os.ReadFile(f)
-	if err != nil {
-		log.Fatalf("Failed to read the schema file: %v", err)
-	}
+func (d *DbType) SetupSchema() {
+    content, err := schemaFS.ReadFile("schema.sql")
+    if err != nil {
+        log.Fatalf("Failed to read the schema file: %v", err)
+    }
 
-	_, err = d.instance.Exec(string(c))
+	_, err = d.instance.Exec(string(content))
 	if err != nil {
 		log.Fatalf("Failed to create the schema: %v", err)
 	}
