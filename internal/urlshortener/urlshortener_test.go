@@ -6,9 +6,8 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	database "github.com/tlegasse/url-shortener/internal/database"
-
 	"github.com/DATA-DOG/go-sqlmock"
+	database "github.com/tlegasse/url-shortener/internal/database"
 )
 
 var shortener ShortenerType
@@ -20,7 +19,7 @@ const (
 
 func TestMain(m *testing.M) {
 
-	Setup(hostname, port, database.Db)
+	Setup(hostname, port)
 
 	shortener = Shortener
 
@@ -73,7 +72,7 @@ func TestShorten(t *testing.T) {
     }
     defer db.Close()
 
-	shortener.Db.SetDatabase(db)
+	database.Db.SetDatabase(db)
 
 	r := httptest.NewRequest("GET", "/shorten?url=http://localhost", nil)
 	w := httptest.NewRecorder()
@@ -99,11 +98,12 @@ func TestRedirect(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/path1", nil)
 
-	shortener.Db.SetDatabase(db)
+	database.Db.SetDatabase(db)
 
-	rows := sqlmock.NewRows([]string{"id", "path", "url"}).AddRow(1, "path1", "http://example1.com")
+	rows := sqlmock.NewRows([]string{"id", "time", "path", "url"}).
+		AddRow(1, "" ,"2", "1")
 
-	mock.ExpectQuery("^SELECT (.+) FROM urls WHERE path = (.+)$").WillReturnRows(rows)
+	mock.ExpectQuery("^(.+)$").WillReturnRows(rows)
 
 	shortener.Redirect(w, r)
 
@@ -111,7 +111,7 @@ func TestRedirect(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 
-	if w.Code != 302 {
+	if w.Code != 303 {
 		t.Errorf("Shorten returned %d", w.Code)
 	}
 

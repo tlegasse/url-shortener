@@ -6,7 +6,6 @@ import (
 
     urlshortener "github.com/tlegasse/url-shortener/internal/urlshortener"
 	util "github.com/tlegasse/url-shortener/internal/util"
-	database "github.com/tlegasse/url-shortener/internal/database"
 )
 
 func main() {
@@ -16,13 +15,17 @@ func main() {
 }
 
 func SetupUrlShortener(c util.Config) {
-	db := database.Db
-	urlshortener.Setup(c.BaseURL, c.Port, db)
+	urlshortener.Setup(c.BaseURL, c.Port)
 }
 
 func SetupServer(c util.Config) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/shorten", urlshortener.Shortener.Shorten)
+	mux.HandleFunc("/", urlshortener.Shortener.Redirect)
+
 	log.Printf("Server listening on :%s", c.Port)
-	err := http.ListenAndServe(":" + c.Port, nil)
+	err := http.ListenAndServe(":" + c.Port, mux)
 
 	if err != nil {
 		log.Fatal(err)

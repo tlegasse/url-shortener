@@ -9,24 +9,15 @@ import (
 )
 
 type ShortenerType struct {
-	Db database.DbType
 	Url string
 	Port string
 }
 
 var Shortener ShortenerType
 
-func Setup(url string, port string, db database.DbType) {
+func Setup(url string, port string) {
 	Shortener.Url = url
 	Shortener.Port = port
-	Shortener.Db = db
-
-	Shortener.SetupRoutes()
-}
-
-func (s ShortenerType) SetupRoutes() {
-	http.HandleFunc("/shorten", s.Shorten)
-	http.HandleFunc("/", s.Redirect)
 }
 
 func RandStringRunes(n int) string {
@@ -58,7 +49,7 @@ func (s ShortenerType) Shorten(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Insert the url into the database
-	err := Shortener.Db.InsertUrl(url)
+	err := database.Db.InsertUrl(url)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -77,7 +68,7 @@ func (s ShortenerType) Redirect(w http.ResponseWriter, r *http.Request) {
 	p := r.URL.Path[1:]
 
 	// Get the URL from the database
-	url, err := Shortener.Db.GetUrlFromPath(p)
+	url, err := database.Db.GetUrlFromPath(p)
 
 	if err != nil {
 		fmt.Println(err)
