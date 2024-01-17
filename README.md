@@ -14,7 +14,7 @@ This project is a URL shortener developed in Go, it's intended as a learning too
 - Basic database integration for storing the URL mappings.
 
 ## Setup and Usage
-Go < 1.16 is required to run this application.
+Go > 1.16 is required to run this application.
 To start, simply clone the repository and run `go run .` in the root directory.
 
 ### Configurations
