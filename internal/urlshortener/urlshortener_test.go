@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
 	database "github.com/tlegasse/url-shortener/internal/database"
 )
 
@@ -115,7 +116,7 @@ func TestRedirect(t *testing.T) {
 		t.Errorf("Shorten returned %d", w.Code)
 	}
 
-	if !strings.HasPrefix(w.Body.String(), hostname + ":" + port + "/") {
+	if !assert.Equal(t, "/1", w.Result().Header.Get("Location")) {
 		t.Errorf("Shorten returned %s", w.Body.String())
 	}
 }
