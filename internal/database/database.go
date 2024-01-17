@@ -24,6 +24,7 @@ type Url struct {
 }
 
 type DbInterface interface {
+	SetDatabase(f string)
 	SetupSchema(f string)
 	GetUrlFromPath(path string) (Url, error)
 	InsertUrl(url Url) (error)
@@ -39,7 +40,8 @@ var Db DbType
 
 func init() {
 	c := util.GetConfig()
-	Db.Instance = Connect(c.DbPath)
+
+	Db.SetDatabase(Connect(c.DbPath))
 
 	Db.Errors = map[string]error{
 		"ErrDatabaseError": errors.New("Database error"),
@@ -48,6 +50,11 @@ func init() {
 
 	Db.SetupSchema()
 }
+
+func (d *DbType) SetDatabase(db *sql.DB) {
+	d.Instance = db
+}
+
 
 func Connect(dbFilename string) *sql.DB {
 	c, err := sql.Open("sqlite3", dbFilename)
@@ -84,6 +91,7 @@ func (d *DbType) GetUrlFromPath(path string) (Url, error) {
 
 	if rows.Next() {
 		err = rows.Scan(&url.Id, &url.Time, &url.Path, &url.Url)
+		fmt.Printf("Url: %v\n", url)
 		if err != nil {
 			fmt.Println(err)
 			return Url{},d.Errors["ErrDatabaseError"]

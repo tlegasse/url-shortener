@@ -81,7 +81,7 @@ func (s ShortenerType) Redirect(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err)
-		// Write a response to the page that reports a 404 to the user with a short message and an error code of 404
+		// Write a response to the page that reports a 404 to the user with a short message and an error code of
 		http.Error(w, "404 Not Found", http.StatusNotFound)
 	} else {
 		// Redirect the user to the URL

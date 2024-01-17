@@ -73,7 +73,7 @@ func TestShorten(t *testing.T) {
     }
     defer db.Close()
 
-	shortener.Db.Instance = db
+	shortener.Db.SetDatabase(db)
 
 	r := httptest.NewRequest("GET", "/shorten?url=http://localhost", nil)
 	w := httptest.NewRecorder()
@@ -96,18 +96,20 @@ func TestRedirect(t *testing.T) {
     }
     defer db.Close()
 
-	r := httptest.NewRequest("GET", "/abc123", nil)
 	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/path1", nil)
 
-	shortener.Db.Instance = db
+	shortener.Db.SetDatabase(db)
 
-	// Write a new entry to the mock database
-	rows := sqlmock.NewRows([]string{"id", "time", "path", "url"}).
-		AddRow(1, "" , "abc123", "http://localhost")
+	rows := sqlmock.NewRows([]string{"id", "path", "url"}).AddRow(1, "path1", "http://example1.com")
 
 	mock.ExpectQuery("^SELECT (.+) FROM urls WHERE path = (.+)$").WillReturnRows(rows)
 
 	shortener.Redirect(w, r)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 
 	if w.Code != 302 {
 		t.Errorf("Shorten returned %d", w.Code)

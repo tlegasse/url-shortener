@@ -68,12 +68,17 @@ func TestGetUrlFromPath(t *testing.T) {
 
 	// before we actually execute our api function, we need to expect required DB actions
 	rows := sqlmock.NewRows([]string{"id", "time", "path", "url"}).
-		AddRow(1, "" ,"1", "1")
+		AddRow(1, "" ,"2", "1")
 
 	mock.ExpectQuery("^SELECT (.+) FROM urls WHERE path = (.+)$").WillReturnRows(rows)
 
 	// Call the GetUrlFromPath function
-	_, err = d.GetUrlFromPath("1")
+	url, err := d.GetUrlFromPath("2")
+
+	if url != (Url{Id: 1, Time: "", Path: "2", Url: "1"}) {
+		t.Errorf("Error in retrieving URL from path value: %s", err)
+	}
+
 	if err != nil {
 		t.Errorf("Error in retrieving URL from path value: %s", err)
 	}
