@@ -16,26 +16,38 @@ type Config struct {
     DbPath  string `mapstructure:"URL_SHORTENER_DB_PATH"`
 }
 
+func SetupCustomConfigPath(customConfigPath string) {
+	viper.SetConfigFile(customConfigPath)
+}
+
+func SetupDefaultConfigPath() error {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Join(path.Dir(filename))
+	filePath := dir + "/app.env"
+
+	// Check if the config file exists
+	_, fileErr := os.Stat(filePath)
+	if fileErr != nil {
+		return fileErr
+	}
+
+	viper.SetConfigFile(filePath)
+	return nil
+}
+
 func LoadConfig() (config Config, err error) {
 	viper.SetConfigType("env")
 	viper.SetConfigName("app")
 
     customConfigPath, isCustomPathSet := os.LookupEnv("APP_ENV_PATH")
     if isCustomPathSet {
-		fmt.Println("Loading custom config file from", customConfigPath)
-        viper.SetConfigFile(customConfigPath)
+		SetupCustomConfigPath(customConfigPath)
     } else {
-		_, filename, _, _ := runtime.Caller(0)
-		dir := path.Join(path.Dir(filename))
-		filePath := dir + "/app.env"
-
-		// Check if the config file exists
-		_, fileErr := os.Stat(filePath)
-        if fileErr != nil {
-            return Config{}, fileErr
-        }
-
-		viper.SetConfigFile(filePath)
+		err := SetupDefaultConfigPath()
+		if err != nil {
+			fmt.Println("Error setting up default config path:", err)
+			return Config{}, err
+		}
     }
 
     viper.AutomaticEnv()
@@ -58,5 +70,6 @@ func GetConfig() Config {
     if err != nil {
         log.Fatal("Cannot load config:", err)
     }
+
     return c
 }
